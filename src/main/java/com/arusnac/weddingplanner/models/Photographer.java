@@ -1,6 +1,4 @@
 package com.arusnac.weddingplanner.models;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.arusnac.weddingplanner.models.Vendor;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,5 +25,9 @@ public class Photographer extends Vendor {
 
     public ArrayList<Integer> getGalleries() {
         return galleries;
+    }
+
+    public void addGalleryId(Integer id){
+        galleries.add(id);
     }
 }
