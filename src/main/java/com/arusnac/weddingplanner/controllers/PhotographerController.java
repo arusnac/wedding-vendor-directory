@@ -18,14 +18,19 @@ public class PhotographerController {
     private PhotographerRepo photographerRepo;
 
     @PostMapping(path="/add")
-    public @ResponseBody String addNewPhotographer (@RequestParam String name, @RequestParam String email, @RequestParam String website, @RequestParam String location, @RequestParam ArrayList<Integer> galleryId ){
+    public @ResponseBody String addNewPhotographer (@RequestParam String name, @RequestParam String bio, @RequestParam String email, @RequestParam String city, @RequestParam String state,
+                                                    @RequestParam String website, @RequestParam String featuredImage, @RequestParam ArrayList<Integer> galleryId ){
+        //1515626553181-0f218cb03f14
         Photographer newPhotographer = new Photographer();
         newPhotographer.setName(name);
+        newPhotographer.setBio(bio);
         newPhotographer.setEmail(email);
-        newPhotographer.setLocation(location);
+        newPhotographer.setCity(city);
+        newPhotographer.setState(state);
         newPhotographer.setCategory("Photography");
         newPhotographer.setWebsite(website);
         newPhotographer.setGalleries(galleryId);
+        newPhotographer.setFeaturedImage(featuredImage);
         photographerRepo.save(newPhotographer);
         return "SAVED";
     }

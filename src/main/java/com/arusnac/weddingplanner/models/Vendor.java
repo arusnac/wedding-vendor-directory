@@ -17,9 +17,12 @@ class Vendor {
     private Integer id;
     private String name;
     private String website;
-    private String location;
+    private String city;
+    private String state;
     private String email;
     private String category;
+    private String bio;
+    private String featuredImage;
 
 //    public String getName(){
 //        return name;

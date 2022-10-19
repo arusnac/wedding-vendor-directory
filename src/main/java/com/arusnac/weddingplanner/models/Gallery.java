@@ -19,4 +19,8 @@ public class Gallery {
     private String title;
     private String description;
     private ArrayList<String> imageUrls;
+
+    public void addImageUrl(String imageUrl) {
+        imageUrls.add(imageUrl);
+    }
 }
