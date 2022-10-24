@@ -1,11 +1,16 @@
 package com.arusnac.weddingplanner.controllers;
 import com.arusnac.weddingplanner.models.Photographer;
 import com.arusnac.weddingplanner.repository.PhotographerRepo;
+import com.arusnac.weddingplanner.services.PhotographerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -16,6 +21,12 @@ import java.util.Optional;
 public class PhotographerController {
     @Autowired
     private PhotographerRepo photographerRepo;
+    @Autowired
+    private final PhotographerService photographerService;
+
+    public PhotographerController(PhotographerService photographerService) {
+        this.photographerService = photographerService;
+    }
 
     @PostMapping(path="/add")
     public @ResponseBody String addNewPhotographer (@RequestParam String name, @RequestParam String bio, @RequestParam String email, @RequestParam String city, @RequestParam String state,
@@ -35,12 +46,14 @@ public class PhotographerController {
         return "SAVED";
     }
 
+    //Return all photographers
     @GetMapping(path="/all")
     public @ResponseBody Iterable<Photographer> getAllPhotographers(){
         return photographerRepo.findAll();
     }
 
 
+    //Delete this vendor by id
     @DeleteMapping(path="/delete/{id}")
     public @ResponseBody ResponseEntity<HttpStatus> deleteById(@PathVariable("id") int id) {
         try {
@@ -53,6 +66,7 @@ public class PhotographerController {
 
     }
 
+    //Update this vendors data
     @PutMapping(path="/update/{id}", consumes = {"application/json"})
     public ResponseEntity<Photographer> updatePhotographer(@PathVariable("id") int id,
                                                            @RequestBody Photographer photographer) {
@@ -67,6 +81,8 @@ public class PhotographerController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    //Add image to the photographers sample gallery
     @PostMapping(path="/addGallery/{id}")
     public @ResponseBody ResponseEntity<Photographer> addToGallery(@PathVariable("id") Integer id, @RequestParam Integer galleryId){
         Optional<Photographer> photographerData = photographerRepo.findById(id);
@@ -76,6 +92,33 @@ public class PhotographerController {
             return new ResponseEntity<>(photographerRepo.save(_photographer), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    //Upload a featured image
+    @Async
+    @PostMapping(
+            path = "/upload/{id}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public @ResponseBody ResponseEntity<HttpStatus> uploadFeaturedImage(@PathVariable("id") Integer id, @RequestParam("file") MultipartFile file){
+        System.out.println(file);
+        photographerService.uploadFeaturedImage(id, file);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    //Download the featured image for this vendor
+    @GetMapping(value= "/download/{id}")
+    @Async
+    public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable("id") Integer id){
+        final byte[] data = photographerService.downloadPhotographerFeaturedImage(id);
+        final ByteArrayResource resource = new ByteArrayResource(data);
+        return ResponseEntity
+                .ok()
+                .contentLength(data.length)
+                .header("Content-type", "application/octet-stream")
+                //.header("Content-disposition", "attachment; filename =\"" + data.)
+                .body(resource);
     }
 
 }
