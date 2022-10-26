@@ -7,4 +7,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface PhotographerRepo extends CrudRepository<Photographer, Integer> {
 
+    Photographer findByName(String name);
 }

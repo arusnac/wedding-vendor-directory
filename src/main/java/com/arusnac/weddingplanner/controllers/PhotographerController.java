@@ -17,6 +17,7 @@ import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:3000/")
 @Controller
+@RestController
 @RequestMapping(path = "/photography")
 public class PhotographerController {
     @Autowired
@@ -29,21 +30,20 @@ public class PhotographerController {
     }
 
     @PostMapping(path="/add")
-    public @ResponseBody String addNewPhotographer (@RequestParam String name, @RequestParam String bio, @RequestParam String email, @RequestParam String city, @RequestParam String state,
-                                                    @RequestParam String website, @RequestParam String featuredImage, @RequestParam ArrayList<Integer> galleryId ){
+    public @ResponseBody ResponseEntity<Photographer> addNewPhotographer (@RequestParam String name, @RequestParam String bio, @RequestParam String email, @RequestParam String city, @RequestParam String state,
+                                                    @RequestParam String website, @RequestParam String category ){
         //1515626553181-0f218cb03f14
+        //@RequestParam ArrayList<Integer> galleryId
         Photographer newPhotographer = new Photographer();
         newPhotographer.setName(name);
         newPhotographer.setBio(bio);
         newPhotographer.setEmail(email);
         newPhotographer.setCity(city);
         newPhotographer.setState(state);
-        newPhotographer.setCategory("Photography");
+        newPhotographer.setCategory(category);
         newPhotographer.setWebsite(website);
-        newPhotographer.setGalleries(galleryId);
-        newPhotographer.setFeaturedImage(featuredImage);
-        photographerRepo.save(newPhotographer);
-        return "SAVED";
+        //newPhotographer.setGalleries(galleryId);
+        return new ResponseEntity<>(photographerRepo.save(newPhotographer), HttpStatus.OK);
     }
 
     //Return all photographers
@@ -52,6 +52,15 @@ public class PhotographerController {
         return photographerRepo.findAll();
     }
 
+    @GetMapping(path="/photographer/{id}")
+    public @ResponseBody ResponseEntity<Photographer> getPhotographer(@PathVariable("id") Integer id){
+        Optional<Photographer> photographerData = photographerRepo.findById(id);
+        if(photographerData.isPresent()){
+            Photographer _photographer = photographerData.get();
+            return new ResponseEntity<>(_photographer, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
 
     //Delete this vendor by id
     @DeleteMapping(path="/delete/{id}")
@@ -76,6 +85,10 @@ public class PhotographerController {
             _photographer.setName(photographer.getName());
             _photographer.setEmail(photographer.getEmail());
             _photographer.setWebsite(photographer.getWebsite());
+            _photographer.setCity(photographer.getCity());
+            _photographer.setState(photographer.getState());
+            _photographer.setCategory(photographer.getCategory());
+            _photographer.setBio(photographer.getBio());
             return new ResponseEntity<>(photographerRepo.save(_photographer), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -113,12 +126,14 @@ public class PhotographerController {
     public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable("id") Integer id){
         final byte[] data = photographerService.downloadPhotographerFeaturedImage(id);
         final ByteArrayResource resource = new ByteArrayResource(data);
-        return ResponseEntity
-                .ok()
-                .contentLength(data.length)
-                .header("Content-type", "application/octet-stream")
-                //.header("Content-disposition", "attachment; filename =\"" + data.)
-                .body(resource);
+        if(data != null) {
+            return ResponseEntity
+                    .ok()
+                    .contentLength(data.length)
+                    .header("Content-type", "application/octet-stream")
+                    //.header("Content-disposition", "attachment; filename =\"" + data.)
+                    .body(resource);
+        } else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 }
